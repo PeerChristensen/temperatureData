@@ -23,6 +23,8 @@
 library(rnoaa)
 library(tidyverse)
 library(lubridate)
+library(zoo)
+library(ggthemes)
 
 # years
 
@@ -52,14 +54,18 @@ for (station in stations) {
   }
 }
 
-df <- df %>% 
+#df <- df %>% 
   mutate(date_time = parse_date_time(date,orders = "Ymd HMS")) %>%
   mutate(date = as.Date(date)) %>%
   #mutate(tmp  = str_replace(tmp, "[+]","")) %>%
   mutate(tmp = str_replace(tmp,",",".")) %>%
   mutate(tmp = as.numeric(tmp)) %>%
-  filter(tmp < 999)
-  
+  filter(tmp < 999) %>%
+  mutate(tmp = tmp/10) %>%
+  mutate(ym = as.yearmon(date),
+         year = year(date),
+         month = month(date),
+         day = day(date))
 
 write_csv(df, "weather_DK_2000-2019_lcd.csv")
 
@@ -73,7 +79,16 @@ df %>%
   group_by(name,ym) %>%
   summarise(m = mean(tmp,na.rm=T)) %>%
   ggplot(aes(x=ym, y=m, colour=name)) +
-  geom_line(alpha=.3, size = 1)
+  geom_line(alpha=.3, size = 1) +
+  scale_colour_tableau() +
+  theme_light()
+
+
+# hearmaps
+# x=days, y=months
+# x= years, y = months
+# x= days/months, y=years
+
 
 # ISD
 
